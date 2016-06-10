@@ -41,35 +41,39 @@ var pointsLength = width;
 
 _.times(pointsLength, (i) => {
 	points[0].push([
-		-width / 2 + i,
-		_.random(-height / 2, height / 2)
+		i,
+		_.random(0, height)
 	]);
 
 	points[1].push([
-		-width / 2 + i,
-		_.random(-height / 2, height / 2)
+		i,
+		_.random(0, height)
 	]);
 
 	points[2].push([
-		-width / 2 + i,
-		_.random(-height / 2, height / 2)
+		i,
+		_.random(0, height)
 	]);
 });
+
+function worldX(x) {
+	return x - window.innerWidth / 2;
+}
+
+function worldY(y) {
+	return -(y - window.innerHeight / 2);
+}
 
 var renderIteration = 0;
 var geometry: any = new THREE.Geometry();
 var line: any = new THREE.Line(geometry, material);
-
-var shape = new THREE.Shape();
-var shapeSize = 128;
-
-shape.moveTo(-shapeSize, -shapeSize);
-shape.lineTo(shapeSize, -shapeSize);
-shape.lineTo(shapeSize, shapeSize);
-shape.lineTo(-shapeSize, shapeSize);
-shape.lineTo(-shapeSize, -shapeSize);
-
 scene.add(line);
+
+var geometry1 = new THREE.BoxGeometry(222, 222, 0);
+var material1 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+var mesh = new THREE.Mesh(geometry1, material1);
+
+scene.add(mesh);
 
 function render() {
 	requestAnimationFrame(render);
@@ -81,9 +85,8 @@ function render() {
 	geometry.vertices = [];
 
 	points[renderIteration].forEach((point) => {
-		geometry.vertices.push(new THREE.Vector3(point[0], point[1]));
+		geometry.vertices.push(new THREE.Vector3(worldX(point[0]), worldY(point[1])));
 	});
-
 	geometry.verticesNeedUpdate = true;
 
 	renderer.render(scene, camera);
@@ -96,3 +99,5 @@ function render() {
 }
 
 render();
+
+
