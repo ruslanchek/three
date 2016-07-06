@@ -1,103 +1,66 @@
 /// <reference path="../../typings/main.d.ts" />
-
-import * as THREE from 'three';
 import * as _ from 'lodash';
 
-var renderer: THREE.Renderer = new THREE.WebGLRenderer({
-	antialias: true,
-	alpha: true,
-	precision: 'lowp'
-});
+document.addEventListener('DOMContentLoaded', () => {
+	var canvas = <HTMLCanvasElement>document.getElementById('container');
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+	var createScene = function (engine) {
+		// Now create a basic Babylon Scene object 
+		var scene = new BABYLON.Scene(engine);
 
-var camera: THREE.Camera = new THREE.OrthographicCamera(
-	window.innerWidth / - 2,
-	window.innerWidth / 2,
-	window.innerHeight / 2,
-	window.innerHeight / - 2,
-	-1000,
-	1000
-);
+		// Change the scene background color to green.
+		// scene.clearColor = new BABYLON.Color3(0, 0, 0);
 
-camera.position.set(0, 0, 0);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+		// This creates and positions a free camera
+		var camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, 0), scene);
 
-var scene: THREE.Scene = new THREE.Scene();
+		camera.orthoTop = 600;
+		camera.orthoBottom = -600;
+		camera.orthoLeft = -1000;
+		camera.orthoRight = 1000;
+		var ratio = 1000 / 600 ;
+		var zoom = 1;
+		var newWidth = zoom * ratio;
+		camera.orthoLeft = -Math.abs(newWidth);
+		camera.orthoRight = newWidth;
+		camera.orthoBottom = -Math.abs(zoom);
 
-var material: any = new THREE.LineBasicMaterial({
-	color: 0x2586D3,
-	linewidth: 2
-});
+		// camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 
-var points = [
-	[], [], []
-];
 
-var width = window.innerWidth;
-var height = window.innerHeight;
-var pointsLength = width;
+		// This targets the camera to scene origin
+		camera.setTarget(BABYLON.Vector3.Zero());
 
-_.times(pointsLength, (i) => {
-	points[0].push([
-		i,
-		_.random(0, height)
-	]);
+		// This attaches the camera to the canvas
+		camera.attachControl(canvas, false);
 
-	points[1].push([
-		i,
-		_.random(0, height)
-	]);
+		// This creates a light, aiming 0,1,0 - to the sky.
+		// var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
 
-	points[2].push([
-		i,
-		_.random(0, height)
-	]);
-});
+		// // Dim the light a small amount
+		// light.intensity = .5;
 
-function worldX(x) {
-	return x - window.innerWidth / 2;
-}
+		// Let's try our built-in 'sphere' shape. Params: name, subdivisions, size, scene
+		var sphere = BABYLON.Mesh.CreateSphere('sphere1', 0, 2, scene);
 
-function worldY(y) {
-	return -(y - window.innerHeight / 2);
-}
+		// Move the sphere upward 1/2 its height
+		sphere.position.y = 1;
 
-var renderIteration = 0;
-var geometry: any = new THREE.Geometry();
-var line: any = new THREE.Line(geometry, material);
-scene.add(line);
+		// Let's try our built-in 'ground' shape.  Params: name, width, depth, subdivisions, scene
+		var ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
 
-var geometry1 = new THREE.BoxGeometry(222, 222, 0);
-var material1 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-var mesh = new THREE.Mesh(geometry1, material1);
+		// Leave this function
+		return scene;
+	};
 
-scene.add(mesh);
+	var engine = new BABYLON.Engine(canvas, true);
+	var scene = createScene(engine);
 
-function render() {
-	requestAnimationFrame(render);
-
-	// line.rotation.x += 0.01;
-	// line.rotation.y += 0.01;
-	// shapeMesh.rotation.y += 0.01;
-
-	geometry.vertices = [];
-
-	points[renderIteration].forEach((point) => {
-		geometry.vertices.push(new THREE.Vector3(worldX(point[0]), worldY(point[1])));
+	engine.runRenderLoop(function () {
+		scene.render();
 	});
-	geometry.verticesNeedUpdate = true;
 
-	renderer.render(scene, camera);
-
-	renderIteration++;
-
-	if (renderIteration > 2) {
-		renderIteration = 0;
-	}
-}
-
-render();
-
-
+	window.addEventListener('resize', () => {
+		engine.resize();
+	});
+}, false);
